@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:chitchat_flutter/screens/register_screen.dart';
 import 'package:chitchat_flutter/constants.dart';
+import 'package:animated_text_kit/animated_text_kit.dart';
 
 class LoginScreen extends StatefulWidget {
   static const String id = 'Login_Screen';
@@ -12,6 +13,7 @@ String email = '';
 String password = '';
 bool e_validate = false;
 bool p_validate = false;
+bool property = false;
 
 class _LoginScreenState extends State<LoginScreen> {
   @override
@@ -40,6 +42,16 @@ class _LoginScreenState extends State<LoginScreen> {
                       height: 60.0,
                     ),
                   ),
+                  // DefaultTextStyle(
+                  //   style: TextStyle(
+                  //     fontSize: 45.0,
+                  //     fontWeight: FontWeight.w900,
+                  //     color: Colors.black,
+                  //   ),
+                  //   child: AnimatedTextKit(
+                  //     animatedTexts: [TypewriterAnimatedText('Chit Chat')],
+                  //   ),
+                  // ),
                   Text(
                     'Chit Chat',
                     style: TextStyle(
@@ -56,6 +68,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 hint: 'Email',
                 result: 'email',
                 result_validate: e_validate,
+                inputType: TextInputType.emailAddress,
               ),
               SizedBox(
                 height: 15.0,
@@ -64,6 +77,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 hint: 'Password',
                 result: 'password',
                 result_validate: p_validate,
+                obscure_text: true,
               ),
               SizedBox(
                 height: 35.0,
@@ -143,14 +157,18 @@ class _LoginScreenState extends State<LoginScreen> {
 }
 
 class MyTextField extends StatelessWidget {
-  MyTextField(
-      {@required this.hint,
-      @required this.result,
-      @required this.result_validate});
+  MyTextField({
+    @required this.hint,
+    @required this.result,
+    @required this.result_validate,
+    this.obscure_text,
+    this.inputType,
+  });
   final String hint;
   final String result;
   final bool result_validate;
-  // final String inputType;
+  var obscure_text;
+  var inputType;
 
   @override
   Widget build(BuildContext context) {

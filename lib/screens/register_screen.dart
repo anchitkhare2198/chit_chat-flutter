@@ -1,5 +1,7 @@
+import 'package:chitchat_flutter/screens/chat_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:chitchat_flutter/constants.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class RegisterScreen extends StatefulWidget {
   static const String id = 'Register_Screen';
@@ -13,6 +15,8 @@ bool e_validate = false;
 bool p_validate = false;
 
 class _RegisterScreenState extends State<RegisterScreen> {
+  final _auth = FirebaseAuth.instance;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -27,7 +31,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
       body: Padding(
         padding: EdgeInsets.all(15.0),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Hero(
@@ -41,14 +44,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
               height: 60.0,
             ),
             MyTextField(
-                hint: 'Email', result: 'email', result_validate: e_validate),
+              hint: 'Email',
+              result: 'email',
+              result_validate: e_validate,
+              inputType: TextInputType.emailAddress,
+            ),
             SizedBox(
               height: 15.0,
             ),
             MyTextField(
-                hint: 'Password',
-                result: 'password',
-                result_validate: p_validate),
+              hint: 'Password',
+              result: 'password',
+              result_validate: p_validate,
+              obscure_text: true,
+            ),
             SizedBox(
               height: 15.0,
             ),
@@ -59,15 +68,26 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 elevation: 5.0,
                 child: MaterialButton(
                   onPressed: () {
-                    setState(() {
-                      email.isEmpty ? e_validate = true : e_validate = false;
-                      password.isEmpty ? p_validate = true : p_validate = false;
-                      if (e_validate || p_validate) {
-                        print('Please enter fields.');
-                      } else {
-                        print('Email is $email');
-                        print('Password is $password');
-                        //Go to main screen after logging In.
+                    setState(() async {
+                      try {
+                        email.isEmpty ? e_validate = true : e_validate = false;
+                        password.isEmpty
+                            ? p_validate = true
+                            : p_validate = false;
+                        if (e_validate || p_validate) {
+                          print('Please enter fields.');
+                        } else {
+                          print('Email is $email');
+                          print('Password is $password');
+                          final newUser =
+                              await _auth.createUserWithEmailAndPassword(
+                                  email: email, password: password);
+                          if (newUser != null) {
+                            Navigator.pushNamed(context, ChatScreen.id);
+                          }
+                        }
+                      } catch (e) {
+                        print(e);
                       }
                     });
                   },
@@ -93,14 +113,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
 }
 
 class MyTextField extends StatelessWidget {
-  MyTextField(
-      {@required this.hint,
-      @required this.result,
-      @required this.result_validate});
+  MyTextField({
+    @required this.hint,
+    @required this.result,
+    @required this.result_validate,
+    this.obscure_text,
+    this.inputType,
+  });
   final String hint;
   final String result;
   final bool result_validate;
-  // final String inputType;
+  var obscure_text;
+  var inputType;
 
   @override
   Widget build(BuildContext context) {
