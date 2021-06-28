@@ -1,8 +1,10 @@
 import 'dart:async';
 
+import 'package:chitchat_flutter/screens/chat_screen.dart';
 import 'package:chitchat_flutter/screens/login_screen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class SplashScreen extends StatefulWidget {
   static const String id = 'Splash_Screen';
@@ -22,7 +24,17 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   void navigationPage() {
-    Navigator.of(context).pushReplacementNamed(LoginScreen.id);
+    // Navigator.of(context).pushReplacementNamed(LoginScreen.id);
+    final _auth = FirebaseAuth.instance;
+    User currentUser = _auth.currentUser;
+
+    if (currentUser != null) {
+      print('UID is ${currentUser.uid}');
+      Navigator.of(context).pushReplacementNamed(ChatScreen.id);
+    } else {
+      print('Null');
+      Navigator.of(context).pushReplacementNamed(LoginScreen.id);
+    }
   }
 
   @override

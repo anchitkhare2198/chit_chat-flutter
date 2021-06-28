@@ -2,6 +2,7 @@ import 'package:chitchat_flutter/screens/chat_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:chitchat_flutter/constants.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:modal_progress_hud/modal_progress_hud.dart';
 
 class RegisterScreen extends StatefulWidget {
   static const String id = 'Register_Screen';
@@ -13,9 +14,23 @@ String email = '';
 String password = '';
 bool e_validate = false;
 bool p_validate = false;
+bool showSpinner = false;
 
 class _RegisterScreenState extends State<RegisterScreen> {
   final _auth = FirebaseAuth.instance;
+
+  void createUserWithEmailPassword(String e, String p) async {
+    final newUser =
+        await _auth.createUserWithEmailAndPassword(email: e, password: p);
+    if (newUser != null) {
+      showSpinner = false;
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => ChatScreen()),
+        (route) => false,
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -28,84 +43,91 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ),
         ),
       ),
-      body: Padding(
-        padding: EdgeInsets.all(15.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Hero(
-              tag: 'logo',
-              child: Container(
-                height: 200.0,
-                child: Image.asset('images/logo.png'),
-              ),
-            ),
-            SizedBox(
-              height: 60.0,
-            ),
-            MyTextField(
-              hint: 'Email',
-              result: 'email',
-              result_validate: e_validate,
-              inputType: TextInputType.emailAddress,
-            ),
-            SizedBox(
-              height: 15.0,
-            ),
-            MyTextField(
-              hint: 'Password',
-              result: 'password',
-              result_validate: p_validate,
-              obscure_text: true,
-            ),
-            SizedBox(
-              height: 15.0,
-            ),
-            Container(
-              child: Material(
-                color: kprimarycolor,
-                borderRadius: BorderRadius.circular(30.0),
-                elevation: 5.0,
-                child: MaterialButton(
-                  onPressed: () {
-                    setState(() async {
-                      try {
-                        email.isEmpty ? e_validate = true : e_validate = false;
-                        password.isEmpty
-                            ? p_validate = true
-                            : p_validate = false;
-                        if (e_validate || p_validate) {
-                          print('Please enter fields.');
-                        } else {
-                          print('Email is $email');
-                          print('Password is $password');
-                          final newUser =
-                              await _auth.createUserWithEmailAndPassword(
-                                  email: email, password: password);
-                          if (newUser != null) {
-                            Navigator.pushNamed(context, ChatScreen.id);
-                          }
-                        }
-                      } catch (e) {
-                        print(e);
-                      }
-                    });
-                  },
-                  minWidth: 200.0,
-                  height: 42.0,
-                  child: Text(
-                    'Register',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 22.0,
-                    ),
-                    textAlign: TextAlign.center,
+      body: ModalProgressHUD(
+        color: kprimarycolor,
+        inAsyncCall: showSpinner,
+        child: Padding(
+          padding: EdgeInsets.all(15.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: Hero(
+                  tag: 'logo',
+                  child: Container(
+                    height: 200.0,
+                    child: Image.asset('images/logo.png'),
                   ),
                 ),
               ),
-            )
-          ],
+              SizedBox(
+                height: 60.0,
+              ),
+              MyTextField(
+                hint: 'Email',
+                result: 'email',
+                result_validate: e_validate,
+                inputType: TextInputType.emailAddress,
+                obscure_text: false,
+              ),
+              SizedBox(
+                height: 15.0,
+              ),
+              MyTextField(
+                hint: 'Password',
+                result: 'password',
+                result_validate: p_validate,
+                obscure_text: true,
+              ),
+              SizedBox(
+                height: 15.0,
+              ),
+              Container(
+                child: Material(
+                  color: kprimarycolor,
+                  borderRadius: BorderRadius.circular(30.0),
+                  elevation: 5.0,
+                  child: MaterialButton(
+                    onPressed: () {
+                      setState(() {
+                        showSpinner = true;
+                        try {
+                          email.isEmpty
+                              ? e_validate = true
+                              : e_validate = false;
+                          password.isEmpty
+                              ? p_validate = true
+                              : p_validate = false;
+                          if (e_validate || p_validate) {
+                            print('Please enter fields.');
+                            showSpinner = false;
+                          } else {
+                            print('Email is $email');
+                            print('Password is $password');
+                            createUserWithEmailPassword(email, password);
+                          }
+                        } catch (e) {
+                          print(e);
+                          showSpinner = false;
+                        }
+                      });
+                    },
+                    minWidth: 200.0,
+                    height: 42.0,
+                    child: Text(
+                      'Register',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 22.0,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+              )
+            ],
+          ),
         ),
       ),
     );
@@ -131,6 +153,7 @@ class MyTextField extends StatelessWidget {
     return TextField(
       maxLines: 1,
       cursorColor: Colors.black,
+      obscureText: obscure_text,
       style: TextStyle(color: Colors.black),
       decoration: InputDecoration(
         labelText: hint,
